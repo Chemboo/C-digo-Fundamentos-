@@ -1,0 +1,167 @@
+import datetime
+
+ARCHIVO = "atenciones.txt"
+
+# ---------------- 1. REGISTRO ----------------
+def registrar():
+    print("\n--- NUEVO REGISTRO ---")
+    
+    # Validación simple usando un bucle 'while'
+    while True:
+        dni = input("DNI (8 dígitos): ")
+        if len(dni) == 8 and dni.isdigit():
+            break
+        print("  Error: El DNI debe tener 8 números.")
+
+    while True:
+        nombre = input("Nombre completo: ")
+        if len(nombre) >= 3:
+            break
+        print("  Error: Escribe un nombre válido.")
+
+    while True:
+        edad = input("Edad: ")
+        if edad.isdigit() and 0 <= int(edad) <= 120:
+            break
+        print("  Error: Escribe una edad correcta.")
+
+    while True:
+        motivo = input("Motivo de atención: ")
+        if len(motivo) >= 3:
+            break
+        print("  Error: Escribe el motivo de la consulta.")
+
+    # Obtenemos fecha y hora actual de forma sencilla
+    ahora = datetime.datetime.now()
+    fecha = ahora.strftime("%Y-%m-%d")
+    hora = ahora.strftime("%H:%M")
+
+    # Guardamos en el archivo escribiendo una línea separada por comas
+    linea = f"{fecha},{hora},{dni},{nombre},{edad},{motivo}\n"
+    
+    # "a" significa 'append' (agregar al final sin borrar lo anterior)
+    archivo = open(ARCHIVO, "a", encoding="utf-8")
+    archivo.write(linea)
+    archivo.close()
+    
+    print("¡Atención registrada correctamente!")
+
+
+# ---------------- 2. BÚSQUEDA ----------------
+def buscar():
+    dni_buscar = input("\nIngresa el DNI a buscar: ")
+    
+    try:
+        # "r" significa 'read' (leer)
+        archivo = open(ARCHIVO, "r", encoding="utf-8")
+        lineas = archivo.readlines()
+        archivo.close()
+    except FileNotFoundError:
+        print("Todavía no hay ningún registro en el sistema.")
+        return
+
+    encontrado = False
+    print("\nResultados:")
+    
+    for linea in lineas:
+        # Quitamos saltos de línea y separamos por las comas
+        datos = linea.strip().split(",")
+        # datos = [fecha, hora, dni, nombre, edad, motivo]
+        
+        if datos[2] == dni_buscar:
+            print(f"- {datos[0]} {datos[1]} | {datos[3]} | {datos[4]} años | Motivo: {datos[5]}")
+            encontrado = True
+
+    if encontrado == False:
+        print("No se encontró ninguna atención con ese DNI.")
+
+
+# ---------------- 3. REPORTES ----------------
+def reporte(tipo):
+    try:
+        archivo = open(ARCHIVO, "r", encoding="utf-8")
+        lineas = archivo.readlines()
+        archivo.close()
+    except FileNotFoundError:
+        print("Todavía no hay ningún registro.")
+        return
+
+    # Usamos un diccionario simple para contar
+    conteo = {}
+    total = 0
+
+    for linea in lineas:
+        datos = linea.strip().split(",")
+        
+        # Si el tipo es 'fecha' miramos la posición 0, si es 'motivo' la posición 5
+        if tipo == "fecha":
+            clave = datos[0]
+        else:
+            clave = datos[5]
+
+        # Lógica fácil para contar: si ya existe le sumamos 1, sino empezamos en 1
+        if clave in conteo:
+            conteo[clave] = conteo[clave] + 1
+        else:
+            conteo[clave] = 1
+            
+        total = total + 1
+
+    # Imprimimos los resultados
+    print(f"\n=== REPORTE POR {tipo.upper()} ===")
+    for clave, cantidad in conteo.items():
+        print(f"{clave}: {cantidad} atenciones")
+    print(f"TOTAL: {total} atenciones")
+
+
+# ---------------- 4. DATOS DE EJEMPLO ----------------
+def cargar_datos_ejemplo():
+    # Simulamos líneas ya listas para guardar
+    ejemplos = [
+        "2026-10-20,08:30,11111111,Persona Uno,34,control prenatal\n",
+        "2026-10-20,09:15,22222222,Persona Dos,8,vacunacion\n",
+        "2026-10-21,10:00,33333333,Persona Tres,52,consulta general\n",
+        "2026-10-21,11:20,44444444,Persona Cuatro,5,vacunacion\n",
+        "2026-10-22,14:00,55555555,Persona Cinco,27,consulta general\n"
+    ]
+    
+    archivo = open(ARCHIVO, "a", encoding="utf-8")
+    for linea in ejemplos:
+        archivo.write(linea)
+    archivo.close()
+    
+    print("¡5 datos de prueba cargados!")
+
+
+# ---------------- 5. MENÚ PRINCIPAL ----------------
+def menu():
+    while True:
+        print("\n=== POSTA SAN CARLOS ===")
+        print("1. Registrar atención")
+        print("2. Buscar por DNI")
+        print("3. Reporte por día")
+        print("4. Reporte por motivo")
+        print("5. Cargar datos de ejemplo")
+        print("0. Salir")
+        
+        opcion = input("Elige una opción: ")
+
+        if opcion == "1":
+            registrar()
+        elif opcion == "2":
+            buscar()
+        elif opcion == "3":
+            reporte("fecha")
+        elif opcion == "4":
+            reporte("motivo")
+        elif opcion == "5":
+            cargar_datos_ejemplo()
+        elif opcion == "0":
+            print("Saliendo del sistema... ¡Hasta luego!")
+            break
+        else:
+            print("Opción incorrecta. Intenta de nuevo.")
+
+# Punto de inicio del programa
+if __name__ == "__main__":
+    menu()
